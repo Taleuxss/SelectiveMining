@@ -1,0 +1,37 @@
+package taleuxss.selectivemine.selectivemining.client;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.minecraft.block.Block;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
+import org.lwjgl.glfw.GLFW;
+
+public class SelectiveMiningClient implements ClientModInitializer {
+    private static Block ALLOWED_BLOCK = null;
+    @Override
+    public void onInitializeClient() {
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            long window = MinecraftClient.getInstance().getWindow().getHandle();
+            boolean isLeftMouseButtonPressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+            if (!isLeftMouseButtonPressed) {
+                updateAllowedBlock(client);
+            }
+        });
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
+            Block block = world.getBlockState(pos).getBlock();
+            return block.equals(ALLOWED_BLOCK) ? ActionResult.PASS : ActionResult.FAIL;
+        });
+    }
+
+    private void updateAllowedBlock(MinecraftClient client) {
+        HitResult hitResult = client.crosshairTarget;
+        if (hitResult != null && hitResult.getType() == HitResult.Type.BLOCK) {
+            BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+            ALLOWED_BLOCK = client.world.getBlockState(blockHitResult.getBlockPos()).getBlock();
+        }
+    }
+}

@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "selectivemining",
+  "version": "${version}",
+  "name": "SelectiveMining",
+  "description": "distinctive block breaking",
+  "authors": [
+    "Taleuxss"
+  ],
+  "contact": {
+    "repo": "https://github.com/Taleuxss/SelectiveMining"
+  },
+  "license": "MPL-2.0",
+  "icon": "assets/selectivemining/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "taleuxss.selectivemine.selectivemining.client.SelectiveMiningClient"
+    ],
+    "main": [
+      "taleuxss.selectivemine.selectivemining.SelectiveMining"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
