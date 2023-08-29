@@ -2,28 +2,44 @@ package taleuxss.selectivemine.selectivemining.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import org.lwjgl.glfw.GLFW;
 
 public class SelectiveMiningClient implements ClientModInitializer {
+    private static final String CATEGORY = "SelectiveMining";
+    private static final KeyBinding TOGGLE_KEYBIND = new KeyBinding("Toggle Selective Mining", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, CATEGORY);
+    private static boolean isEnabled = false;
     private static Block ALLOWED_BLOCK = null;
+
     @Override
     public void onInitializeClient() {
+        KeyBindingHelper.registerKeyBinding(TOGGLE_KEYBIND);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            long window = MinecraftClient.getInstance().getWindow().getHandle();
-            boolean isLeftMouseButtonPressed = GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-            if (!isLeftMouseButtonPressed) {
-                updateAllowedBlock(client);
+            while (TOGGLE_KEYBIND.wasPressed()) {
+                isEnabled = !isEnabled;
+            }
+            if (isEnabled) {
+                boolean isLeftMouseButtonPressed = GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
+                if (!isLeftMouseButtonPressed) {
+                    updateAllowedBlock(client);
+                }
             }
         });
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            Block block = world.getBlockState(pos).getBlock();
-            return block.equals(ALLOWED_BLOCK) ? ActionResult.PASS : ActionResult.FAIL;
+            if (isEnabled) {
+                Block block = world.getBlockState(pos).getBlock();
+                return block.equals(ALLOWED_BLOCK) ? ActionResult.PASS : ActionResult.FAIL;
+            } else {
+                return ActionResult.PASS;
+            }
         });
     }
 
