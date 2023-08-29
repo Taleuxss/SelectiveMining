@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.util.ActionResult;
@@ -27,8 +28,9 @@ public class SelectiveMiningClient implements ClientModInitializer {
                 isEnabled = !isEnabled;
             }
             if (isEnabled) {
-                boolean isLeftMouseButtonPressed = GLFW.glfwGetMouseButton(MinecraftClient.getInstance().getWindow().getHandle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-                if (!isLeftMouseButtonPressed) {
+                GameOptions gameOptions = MinecraftClient.getInstance().options;
+                boolean isMiningButtonPressed = gameOptions.attackKey.isPressed();
+                if (!isMiningButtonPressed) {
                     updateAllowedBlock(client);
                 }
             }
