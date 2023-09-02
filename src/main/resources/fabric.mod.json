@@ -10,7 +10,7 @@
   "contact": {
     "repo": "https://github.com/Taleuxss/SelectiveMining"
   },
-  "license": "MPL-2.0",
+  "license": "LGPL-3.0-or-later",
   "icon": "assets/selectivemining/icon.png",
   "environment": "client",
   "entrypoints": {
