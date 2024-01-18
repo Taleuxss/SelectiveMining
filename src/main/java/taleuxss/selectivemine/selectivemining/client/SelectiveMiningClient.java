@@ -10,11 +10,16 @@ import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import org.lwjgl.glfw.GLFW;
 
 public class SelectiveMiningClient implements ClientModInitializer {
@@ -26,31 +31,44 @@ public class SelectiveMiningClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyBindingHelper.registerKeyBinding(TOGGLE_KEYBIND);
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            while (TOGGLE_KEYBIND.wasPressed()) {
-                isEnabled = !isEnabled;
-                if (isEnabled) {
-                    displayMessageOnScreen(client, "Enabled Selective Mining", Formatting.GREEN);
-                } else {
-                    displayMessageOnScreen(client, "Disabled Selective Mining", Formatting.RED);
-                }
-            }
+        AttackBlockCallback.EVENT.register(this::handleAttackBlock);
+        ClientTickEvents.END_CLIENT_TICK.register(this::handleClientTick);
+    }
+
+    private void handleClientTick(MinecraftClient client) {
+        toggleSelectiveMining(client);
+        updateAllowedBlockIfNotMining(client);
+    }
+
+    private void updateAllowedBlockIfNotMining(MinecraftClient client) {
+        if (isEnabled && !isMiningButtonPressed()) {
+            updateAllowedBlock(client);
+        }
+    }
+
+    private boolean isMiningButtonPressed() {
+        GameOptions gameOptions = MinecraftClient.getInstance().options;
+        return gameOptions.attackKey.isPressed();
+    }
+
+    private ActionResult handleAttackBlock(PlayerEntity playerEntity, World world, Hand hand, BlockPos pos, Direction direction) {
+        if (isEnabled) {
+            Block block = world.getBlockState(pos).getBlock();
+            return block.equals(ALLOWED_BLOCK) ? ActionResult.PASS : ActionResult.FAIL;
+        } else {
+            return ActionResult.PASS;
+        }
+    }
+
+    private void toggleSelectiveMining(MinecraftClient client) {
+        while (TOGGLE_KEYBIND.wasPressed()) {
+            isEnabled = !isEnabled;
             if (isEnabled) {
-                GameOptions gameOptions = MinecraftClient.getInstance().options;
-                boolean isMiningButtonPressed = gameOptions.attackKey.isPressed();
-                if (!isMiningButtonPressed) {
-                    updateAllowedBlock(client);
-                }
-            }
-        });
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            if (isEnabled) {
-                Block block = world.getBlockState(pos).getBlock();
-                return block.equals(ALLOWED_BLOCK) ? ActionResult.PASS : ActionResult.FAIL;
+                displayMessageOnScreen(client, "Enabled Selective Mining", Formatting.GREEN);
             } else {
-                return ActionResult.PASS;
+                displayMessageOnScreen(client, "Disabled Selective Mining", Formatting.RED);
             }
-        });
+        }
     }
 
     private void updateAllowedBlock(MinecraftClient client) {
