@@ -14,12 +14,12 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "taleuxss.selectivemine.selectivemining.client.SelectiveMiningClient"
+      "taleuxss.SelectiveMiningClient"
     ]
   },
   "depends": {
-    "fabricloader": ">=${loader_version}",
+    "fabricloader": "*",
     "fabric": "*",
-    "minecraft": "${minecraft_version}"
+    "minecraft": ">=${minecraft_version}"
   }
 }
