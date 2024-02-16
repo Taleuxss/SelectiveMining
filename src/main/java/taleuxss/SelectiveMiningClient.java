@@ -18,38 +18,26 @@ public class SelectiveMiningClient implements ClientModInitializer {
     private static final KeyBinding TOGGLE_KEYBIND = new KeyBinding("Toggle Selective Mining", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_UNKNOWN, "SelectiveMining");
     private static boolean isEnabled = false;
     private static Block allowedBlock = null;
-    private static boolean updateAllowedBlock = true;
 
     @Override
     public void onInitializeClient() {
         KeyBindingHelper.registerKeyBinding(TOGGLE_KEYBIND);
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (TOGGLE_KEYBIND.wasPressed()) {
-                toggleSelectiveMining(client);
-            }
-            if (!client.options.attackKey.isPressed() && !updateAllowedBlock && isEnabled) {
+            if (TOGGLE_KEYBIND.wasPressed()) toggleSelectiveMining(client);
+            if (!client.options.attackKey.isPressed() && allowedBlock != null && isEnabled) {
                 allowedBlock = null;
-                updateAllowedBlock = true;
             }
         });
-        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> {
-            if (isEnabled && (allowedBlock != null && !world.getBlockState(pos).isOf(allowedBlock))) {
-                return ActionResult.FAIL;
-            }
-            return ActionResult.PASS;
-        });
+        AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> isEnabled && allowedBlock != null && !world.getBlockState(pos).isOf(allowedBlock) ? ActionResult.FAIL : ActionResult.PASS);
         PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (updateAllowedBlock) {
+            if (allowedBlock == null) {
                 allowedBlock = state.getBlock();
-                updateAllowedBlock = false;
             }
         });
     }
 
     private void toggleSelectiveMining(MinecraftClient client) {
         isEnabled = !isEnabled;
-        String message = isEnabled ? "Enabled Selective Mining" : "Disabled Selective Mining";
-        Formatting formatting = isEnabled ? Formatting.GREEN : Formatting.RED;
-        client.inGameHud.setOverlayMessage(Text.of(formatting + message), false);
+        client.inGameHud.setOverlayMessage(Text.of((isEnabled ? Formatting.GREEN : Formatting.RED) + (isEnabled ? "Enabled Selective Mining" : "Disabled Selective Mining")), false);
     }
 }
