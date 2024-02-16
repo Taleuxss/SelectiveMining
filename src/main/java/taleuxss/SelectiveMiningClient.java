@@ -22,18 +22,9 @@ public class SelectiveMiningClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         KeyBindingHelper.registerKeyBinding(TOGGLE_KEYBIND);
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (TOGGLE_KEYBIND.wasPressed()) toggleSelectiveMining(client);
-            if (!client.options.attackKey.isPressed() && allowedBlock != null && isEnabled) {
-                allowedBlock = null;
-            }
-        });
+        ClientTickEvents.END_CLIENT_TICK.register(client -> { if (TOGGLE_KEYBIND.wasPressed()) toggleSelectiveMining(client); if (!client.options.attackKey.isPressed() && allowedBlock != null && isEnabled) { allowedBlock = null; }});
         AttackBlockCallback.EVENT.register((player, world, hand, pos, direction) -> isEnabled && allowedBlock != null && !world.getBlockState(pos).isOf(allowedBlock) ? ActionResult.FAIL : ActionResult.PASS);
-        PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> {
-            if (allowedBlock == null) {
-                allowedBlock = state.getBlock();
-            }
-        });
+        PlayerBlockBreakEvents.AFTER.register((world, player, pos, state, blockEntity) -> { if ( allowedBlock == null) { allowedBlock = state.getBlock(); }});
     }
 
     private void toggleSelectiveMining(MinecraftClient client) {
